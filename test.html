@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enviar Imagens</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <form id="formImagens" method="post">
+        <h1>
+            <strong>
+                Face Match
+            </strong>
+        </h1>
+        <label for="imagem1">Imagem 1:<br>
+            <input type="file" id="imagem1" required name="imagem1">
+        </label>
+        <br>
+        <label for="imagem2">Imagem 2:<br>
+            <input type="file" id="imagem2" required name="imagem2">
+        </label>
+        <br>
+        <button onclick='waitRes()' type="submit">Enviar</button>
+        <div id="res"></div>
+    </form>
+    <script>
+        function waitRes() {
+            if ($('#imagem1').val() !== "" && $('#imagem2').val() !== "") {
+                $("#res").text("Carregando...")
+            }
+        }
+        $(document).ready(function () {
+            $("#formImagens").submit(function (event) {
+                event.preventDefault();
+                var formData = new FormData();
+                var imagem1 = $("#imagem1").prop("files")[0];
+                var imagem2 = $("#imagem2").prop("files")[0];
+                var reader1 = new FileReader();
+                var reader2 = new FileReader();
+                reader1.readAsDataURL(imagem1);
+                reader2.readAsDataURL(imagem2);
+                reader1.onloadend = function () {
+                    formData.append("imagem1", reader1.result.split(",")[1]);
+                    reader2.onloadend = function () {
+                        formData.append("imagem2", reader2.result.split(",")[1]);
+                        var dataToSend = {
+                            "imagem1": formData.get("imagem1"),
+                            "imagem2": formData.get("imagem2")
+                        };
+                        $.ajax({
+                            url: "http://localhost:5000/imgval",
+                            type: "POST",
+                            data: JSON.stringify(dataToSend),
+                            processData: false,
+                            contentType: "application/json",
+                            success: function (data) {
+                                $("#res").html(data);
+                                alert(data)
+                                location.reload(true);
+                            },
+                            error: function (jqXHR, textStatus, errorThrown) {
+                                console.error(errorThrown);
+                            }
+                        });
+                    }
+                }
+            });
+            $("#formImagens button[type=submit]").on("click touchend", function (event) {
+                event.preventDefault();
+                $("#formImagens").submit();
+            });
+
+        });
+
+    </script>
+</body>
+
+</html>
